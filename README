@@ -1,1 +1,82 @@
-This is a repo for cm3
+Simple baremetal startup code for an Arm Cortex-M3 processor, implemented
+specifically for a lm3s6965evb microcontroller executing in qemu.
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'how to launch qemu and vscode.                                                      '
+'-------------------------------                                                     '
+'> qemu-system-arm -M lm3s6965evb -S -s -m 128M -nographic -kernel output/prog.elf   '
+'> code . --ignore-certificate-errors                                                '
+'The vscode has its owns qemu builtin and there is no need to start a separate qemu. '
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+The directory "debug" contains useful information for analyzing output section
+headers and disassembly.
+
+This repo consists of the bare minimal code to start an ARM processor (or at least close to it) in the C language so that a user can run a useful program. This was a resource I felt was missing online and spent too much time trying to learn this process. Below is a brief overview of how things work, I however recommend you check out the sources at the bottom, and open an issue for any questions that I may be able to answer.
+
+==OVERVIEW==
+When compiling a program, your code is broken down into various sections based on certain criteria. Because this startup code is as minimal as possible, the only sections that are of importance here are:
+
+	.text : executable instructions (ex. LDR, ADD, etc.) 
+	.data : INITIALIZED variables
+	.bss : UNINITIALIZED variables
+	
+Every single C file you compile will be broken down into at least these sections. You can see all the sections yourself by compiling a file with:
+	
+	gcc -c <somefile.c> -o somefile
+	
+Then analyzing running:
+
+	objdump --section-headers somefile
+
+Because every file has these sections and we can only flash one binary file to the
+microcontroller, we use the linker tool. The linker does two things:
+	
+	1. Combine each section into one larger section (ex. merges all .text sections from each file into one big .text)
+	2. Place each merged section wherever we tell it to in the final output file.
+	
+Point number 2 is the one that is crucial for ARM applications vs desktop applications. Because this code is being run on bare hardware, the hardware needs to know where to look for certain pieces of code in order to run anything (something that your operating system assigns itself when running a desktop app). It does this by looking at various memory addresses in flash, which is why it's important we tell the linker script to put specific sections of code at specific locations in our output file. 
+
+One of these important locations is 0x00. This introduces the most important piece of startup code, and the bridge between the hardware and software, known as the vector table. The vector table is nothing more than an array that holds the location of important functions. This table is located at 0x00000000, and the first thing the processor does on boot is look at this table in flash to know where to go next.
+
+Some vector table pseudocode is below:
+
+	ADRRESS 0x00:
+		=================================================================
+		0: 		TOP_OF_STACK <- 32-bit address
+		1: 		RESET_HANDLER <- 32-bit function address
+		2-16: 	ARM_EXCEPTION_HANDLERS <- 32-bit function addresses
+		17-X:	INTERRUPT_HANDLERS <- 32-bit funtion addresses
+		
+		
+On reset, the hardware will automatically set the stack pointer register to the value at 0x00, which must contain the address of the top of the stack in RAM. Next, the hardware look at the second address in the vector table, the reset handler, and jumps to that code section and runs it. From then on, it's up to the software you wrote to call direct the processor where to go next. Thus, main() is called from the reset handler, as the next place to go. From then on, main calls other functions, etc., and the program continues execution.
+
+Note that if you analyze the disassembly in the output file, you will see that the address of each vector on the vector table is 1 byte away from the actual first instruction (ex. reset handler in vector table is at 0x199 but actual address if you scroll down to it is 198). That is just an ARM specification and your compiler does that automatically.
+
+Aside from calling main(), the reset handler must do two other things:
+
+	1. Copy .data to ram
+	2. Set all variables in .bss to 0
+	
+An important note is that when you download code to a microcontroller, you can only download to flash itself (thus "flashing" a microcontroller), therefore the initialized variables and data that you want to live in RAM so that you can modify it (ex. a variable that holds the state of a push button that you inititialized to OFF) needs to be first written to flash, then copied to RAM by your startup code. See the implementation in startup.c for how that is done.
+
+All .bss needs to be initialized to zero as the C standard calls for it, thereby initializing all uninitialized data to 0. Makes enough sense to me.
+
+After calling main(), the startup process is done!
+
+Those are the broad strokes of how the processor boots up. There are more details such as boot pins, code sections, etc. that can also effect startup, but that is outside the intention of this repo.
+
+Please see the following resources for more information:
+https://jacobmossberg.se/posts/2018/08/11/run-c-program-bare-metal-on-arm-cortex-m3.html : more in-depth blog post
+https://www.youtube.com/watch?v=3brOzLJmeek&t=153s : arm boot-process
+
+
+
+		
+		
+
+
+	
+	
+
+	
