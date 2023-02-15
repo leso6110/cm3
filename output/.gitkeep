@@ -1,0 +1,3 @@
+Just a dummy file to make git include this directory in the repo.
+Git don't care about empty directories and in this case I want this directory
+to be present. Otherwise the badly written makefile doesn't work. 

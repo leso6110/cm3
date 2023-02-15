@@ -1,0 +1,4 @@
+# Object files and stuff
+*.o
+*.obj
+*.elf

@@ -1,0 +1,9 @@
+SYStem.CPU CortexM3
+SYStem.PORT localhost:1234
+SYStem.GDBconfig GDBSERVER OFF
+SYStem.Mode Attach
+data.load.elf output/prog.elf /NOCODE
+
+;Also list source and registers.
+List
+Register
