@@ -1,13 +1,17 @@
 Simple baremetal startup code for an Arm Cortex-M3 processor, implemented
 specifically for a lm3s6965evb microcontroller executing in qemu.
 
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-'how to launch qemu and vscode.                                                      '
-'-------------------------------                                                     '
-'> qemu-system-arm -M lm3s6965evb -S -s -m 128M -nographic -kernel output/prog.elf   '
-'> code . --ignore-certificate-errors                                                '
-'The vscode has its owns qemu builtin and there is no need to start a separate qemu. '
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'how to launch qemu, vscode and trace32.                                                      '
+-------------------------------                                                
+> qemu-system-arm -M lm3s6965evb -S -s -m 128M -nographic -kernel output/prog.elf
+
+> code . --ignore-certificate-errors
+
+The vscode has its owns qemu builtin and there is no need to start a separate qemu.
+
+> ~/t32/bin/pc_linux64/t32marm-qt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 The directory "debug" contains useful information for analyzing output section
 headers and disassembly.
