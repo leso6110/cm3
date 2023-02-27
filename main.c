@@ -1,7 +1,11 @@
 #include <stdint.h>
 #include <stdatomic.h>
 
-static int j = 47;
+//Some basic test of initiation of global variables.
+static volatile int test_47 = 47;
+static volatile int test_0 = 0;
+static volatile int test_uninit;
+
 int inc(int i)
 {
   i++;
@@ -154,6 +158,19 @@ static void change_primask(void)
   }
 }
 
+int faculty(int n)
+{
+    int res;
+
+    if (n <= 1)
+    {
+       return 1;
+    }
+     
+     res = n * faculty(n - 1);
+     return res;
+}
+
 int main()
 {
 
@@ -164,6 +181,8 @@ int main()
   volatile uint32_t swap =0x01234567;
   volatile _Atomic(uint8_t) a;
 
+  x = faculty(3);
+  
   a = 5;
   
   a++;
@@ -191,9 +210,9 @@ int main()
 
   y = get_BASEPRI();
   y = get_FAULTMASK();
-  y = get_CONTROL();
-
+  z = get_CONTROL();
+  (void)z; //Shut-up compiler warning variable not used.
   i = inc(i);
-  i = j;
+
   return 0; 
 }
